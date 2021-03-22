@@ -34,7 +34,7 @@ class KNN(object):
     def eval(self, instence):  # 输入一个测试样本，返回预测的标签
         # 1. 找到最近的k个邻居
         distences = self.distence_calculation(instence)
-        topk_indexs = np.argsort(distences)[self.k:]
+        topk_indexs = np.argsort(distences)[:self.k]    # 选取前k项
         topk_labels = self.train_labels[topk_indexs]
         label = find_majority(topk_labels)
         return label
