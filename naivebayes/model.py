@@ -10,8 +10,8 @@ from itertools import product
 
 
 class NaiveBayes(object):
-    def __init__(self, feat_dim, laplace_smoothing=True, lam=0):
-        self.lam = 1 if laplace_smoothing else lam
+    def __init__(self, feat_dim, laplace_smoothing=True):
+        self.lam = 1 if laplace_smoothing else 0
         self.label_list = None
         self.priori_prob = dict()
         self.likelihood_list = []
@@ -28,14 +28,17 @@ class NaiveBayes(object):
             # product[0]: feature, product[1]: label
             product_list = list(product(list(set(train_feat[:, feat_dim_idx])), self.label_list))
             likelihood = {
-                productvalue: np.sum(
+                productvalue: (np.sum(
                     np.logical_and(train_feat[:, feat_dim_idx] == productvalue[0], train_labels == productvalue[1])
-                ) / self.priori_prob[productvalue[1]]
+                ) + self.lam) / (self.priori_prob[productvalue[1]] + self.lam * len(set(train_feat[:, feat_dim_idx])))
                 for productvalue in product_list
             }
             self.likelihood_list.append(likelihood)
         # priori probability (real)
-        self.priori_prob = {label: count / instance_num for label, count in self.priori_prob.items()}
+        self.priori_prob = {
+            label: (count + self.lam) / (instance_num + len(self.label_list))
+            for label, count in self.priori_prob.items()
+        }
         print("finished training")
 
     def inference(self, instance):
